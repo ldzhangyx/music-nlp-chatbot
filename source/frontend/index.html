@@ -10,6 +10,7 @@
 </head>
 <body>
     <div id="app">
+        {% verbatim %}
         <v-app style="background-color:#0B346E;">
             <v-container
               class="fill-height pa-0 "
@@ -145,10 +146,14 @@
               </v-row>
             </v-container>
         </v-app>
+        {% endverbatim %}
     </div>
+
+  {% verbatim %}
 
   <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script>
 
     function sleep(ms) {
@@ -159,6 +164,7 @@
     var configurations = {
         'height':700,
         'message_height':50,
+        'lyrics_gen':'GPT' //'GPT', etc.
     }  
     new Vue({
     el: '#app',
@@ -202,13 +208,32 @@
             }
         }, 
         askBot(message, messages){ //这里是控制bot如何回答的地方
+            var askJusge = this.askTypeJudge(message)
+            if (askJusge === 'lyrics_gen'){
+                var return_message = this.lyrics_generator(message)
+            }
+            else{
+                var return_message = 'Judge Error'
+            }
+
             var d = new Date()
-            sleep(1500)
             messages.push({
-                content: message,
+                content: return_message,
                 me: false,
                 created_at: d.getHours() + ':' + d.getMinutes()
             })
+        },
+        askTypeJudge(message){
+            var types = ['lyrics_gen', 'music_gen']
+            return types[0]
+        },
+        lyrics_generator(message){
+            if (this.configurations['lyrics_gen'] === 'GPT'){
+                const axios = require('axios');
+            }
+            else {
+                return 'Lyrics Error'
+            }
         },
         sendMessage(messageForm, messages){
             var d = new Date()
@@ -221,10 +246,15 @@
                 this.askBot(messageForm.content, messages)
             }
             messageForm.content = ''
-        },
-        
-    }
+        },  
+    },
+    mounted () {
+      axios
+      .get('api/666')
+      .then(response => (this.string_from_api = response.data))
+    },
     })
   </script>
+  {% endverbatim %}
 </body>
 </html>
