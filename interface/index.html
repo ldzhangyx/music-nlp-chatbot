@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+<body>
+    <div id="app">
+        <v-app style="background-color:#0B346E;">
+            <v-container
+              class="fill-height pa-0 "
+            >
+             <!--主体-->
+              <v-row class="no-gutters elevation-4">
+                  <!--左边的框架-->
+                <v-col
+                  cols="12" sm="3"
+                  class="flex-grow-1 flex-shrink-0"
+                  style="border-right: 1px solid #0000001f;
+                  background-color:#FFFFFF;"
+                >
+                  <v-responsive
+                    class="overflow-y-auto fill-height"
+                    height="700"
+                  >
+                    <v-list subheader>
+                      <v-list-item-group v-model="activeChat">
+                        <template v-for="(item, index) in parents">
+                        <!--列表-->
+                          <v-list-item
+                            :key="`parent${index}`"
+                            :value="item.id"
+                            @click="menuActionClick(parents, item)"
+                          >
+                            <v-list-item-avatar color="grey lighten-1 white--text">
+                              <v-icon>
+                                chat_bubble
+                              </v-icon>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                              <v-list-item-title v-text="item.title" />
+                              <v-list-item-subtitle v-text="'hi'" />
+                            </v-list-item-content>
+                            <v-list-item-icon>
+                              <v-icon :color="item.active ? 'deep-purple accent-4' : 'grey'">
+                                chat_bubble
+                              </v-icon>
+                            </v-list-item-icon>
+                          </v-list-item>
+                          <v-divider
+                            :key="`chatDivider${index}`"
+                            class="my-0"
+                          />
+                        </template>
+                      </v-list-item-group>
+                    </v-list>
+                  </v-responsive>
+                </v-col>
+                <!--右边-->
+                <v-col
+                  cols="auto"
+                  class="flex-grow-1 flex-shrink-0"
+                >
+                  <v-responsive
+                    v-if="activeChat"
+                    class="overflow-y-hidden fill-height"
+                    min-height="700"
+                    max-height="700" 
+                  >
+                    <v-card
+                      flat
+                      class="d-flex flex-column fill-height"
+                    >
+                    <!--聊天框标题-->
+                      <v-card-title 
+                        v-for = "(item, index) in parents"
+                        v-if  = "item.active">
+                        {{item.title}}
+                      </v-card-title>
+                      <!-- <v-virtual-scroll height="configurations['height']"> -->
+                        <v-card-text class="flex-grow-1 overflow-y-auto">
+                            <template v-for="(msg, i) in messages">
+                            <div
+                                :class="{ 'd-flex flex-row-reverse': msg.me }"
+                            >
+                                <v-menu offset-y>
+                                <template v-slot:activator="{ on }">
+                                    <v-hover
+                                    v-slot:default="{ hover }"
+                                    >
+                                    <v-chip
+                                        :color="msg.me ? 'primary' : ''"
+                                        dark
+                                        style="height:auto;white-space: normal;"
+                                        class="pa-4 mb-2"
+                                        v-on="on"
+                                    >
+                                        {{ msg.content }}
+                                        <sub
+                                        class="ml-2"
+                                        style="font-size: 0.5rem;"
+                                        >{{ msg.created_at }}</sub>
+                                        <v-icon
+                                        v-if="hover"
+                                        small
+                                        >
+                                        expand_more
+                                        </v-icon>
+                                    </v-chip>
+                                    </v-hover>
+                                </template>
+                                <v-list>
+                                    <v-list-item>
+                                    <v-list-item-title>delete</v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
+                                </v-menu>
+                            </div>
+                            </template>
+                        </v-card-text>
+                      <!-- </v-virtual-scroll> -->
+                      <v-card-text class="flex-shrink-1">
+                          <v-text-field
+                          v-model="messageForm.content"
+                          label="Message"
+                          type="text"
+                          no-details
+                          outlined
+                          clear-icon="mdi-close-circle"
+                          clearable
+                          :append-icon=" marker ? 'mdi-map-marker' : 'mdi-map-marker-off'"
+                          append-outer-icon = "send"
+                          @keyup.enter="sendMessage(messageForm, messages)"
+                          @click:append-outer="sendMessage(messageForm, messages)"
+                          hide-details
+                        />
+                      </v-card-text>
+                    </v-card>
+                  </v-responsive>
+                </v-col>
+              </v-row>
+            </v-container>
+        </v-app>
+    </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script>
+
+    function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    var botContent = []
+    var configurations = {
+        'height':700,
+        'message_height':50,
+    }  
+    new Vue({
+    el: '#app',
+    vuetify: new Vuetify(),
+    data: () => ({
+        activeChat: 1,
+        parents: [
+        {
+            id: 1,
+            title: "MusicAI Bot",
+            active: true
+        },
+        {
+            id: 2,
+            title: "Notes",
+            active: false
+        },
+        ],
+        messages: [
+        ],
+        messageForm: {
+        content: "",
+        me: true,
+        created_at: "11:11am"
+        },
+        message_bot:{
+        content: "",
+        me: false,
+        created_at: "11:11am"
+        }
+    }),
+    methods: {
+        menuActionClick(parents, item){
+            for (i=0;i<parents.length;i++){
+                if (parents[i].id === item.id){
+                    parents[i].active = true
+                }
+                else{
+                    parents[i].active = false
+                }
+            }
+        }, 
+        askBot(message, messages){ //这里是控制bot如何回答的地方
+            var d = new Date()
+            sleep(1500)
+            messages.push({
+                content: message,
+                me: false,
+                created_at: d.getHours() + ':' + d.getMinutes()
+            })
+        },
+        sendMessage(messageForm, messages){
+            var d = new Date()
+            messages.push({
+                content: messageForm.content,
+                me: messageForm.me,
+                created_at: d.getHours() + ':' + d.getMinutes()
+            })
+            if (messageForm.me){
+                this.askBot(messageForm.content, messages)
+            }
+            messageForm.content = ''
+        },
+        
+    }
+    })
+  </script>
+</body>
+</html>
