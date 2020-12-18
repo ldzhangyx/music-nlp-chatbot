@@ -235,7 +235,7 @@
                 return 'Lyrics Error'
             }
         },
-        sendMessage(messageForm, messages){
+        sendMessage(messageForm, messages){ // 发送消息
             var d = new Date()
             messages.push({
                 content: messageForm.content,
@@ -247,12 +247,32 @@
             }
             messageForm.content = ''
         },  
+        welcome(){
+          var d = new Date()
+          axios.get('api/welcome')
+            .then(response => {
+              this.welcome_messages = response.data
+              console.log(this.welcome_messages)
+              for (welcome_message of this.welcome_messages.split('*')){
+              this.messages.push({
+                    content: welcome_message,
+                    me: false,
+                    created_at: d.getHours() + ':' + d.getMinutes()
+                })
+              }
+            })
+          
+        },
     },
     mounted () {
-      axios
-      .get('api/666')
-      .then(response => (this.string_from_api = response.data))
+      // 初始化
+      this.welcome()
     },
+    // mounted () {
+    //   axios
+    //   .get('api/666')
+    //   .then(response => (this.string_from_api = response.data))
+    // },
     })
   </script>
   {% endverbatim %}
