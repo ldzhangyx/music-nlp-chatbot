@@ -209,16 +209,26 @@
             }
         }, 
         askBot(message){ //这里是控制bot如何回答的地方
-          axios.post('api/analysis', {
-            id: this.sessionId,
-            content: message}
-            )
+          axios.post('api/message', 
+            {id: this.sessionId,
+            timestamp: Date.now(),
+            content: message},{
+          headers: {
+              'X-CSRFToken': this.getCookie('csrftoken'),
+              'Content-Type': 'application/json',
+          },
+          })
             .then(response => {
               this.response_messages = response.data
-              for (response_message of this.welcome_messages.split('*')){
+              for (response_message of this.response_messages.split('*')){
                 this.sendMessage(response_message, false)
               }
             })
+        },
+        getCookie (name) {
+          var value = '; ' + document.cookie
+          var parts = value.split('; ' + name + '=')
+          if (parts.length === 2) return parts.pop().split(';').shift()
         },
         getLocation(){
           getLoc = () => new Promise(location_success => this.marker.getCurrentPosition(location_success))

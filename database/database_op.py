@@ -63,6 +63,9 @@ def creation_table_logging(db_name, session_id, column_name, content):
     # 修改现有的creation table
     conn = sqlite3.connect(db_name)
     c = conn.cursor()
+    c.execute("SELECT * FROM CREATION WHERE id = ?", (session_id))
+    if len(c.fetchall()) == 0:
+        new_creatiob_table_logging(db_name, session_id)
     # 预防SQL注入
     c.execute("UPDATE CREATION SET ? = ? where session_id = ?", (column_name, content, session_id))
     conn.commit()

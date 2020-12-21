@@ -19,7 +19,7 @@ from django.conf.urls import include, url
 from django.views.generic.base import TemplateView
 from django.http import HttpResponse
 from django.shortcuts import render #,render_to_response
-from .model import welcome
+from .model import welcome, controller
 # from django.urls import path, include
 # from django.contrib.auth.models import User
 # from rest_framework import routers, serializers, viewsets
@@ -45,5 +45,6 @@ urlpatterns = [
     TemplateView.as_view(template_name='index.html')(request)),
     url('api/666', view=lambda e: HttpResponse('戏说不是胡说')),
     url('api/welcome', view = lambda e: HttpResponse(welcome.welcome())),
+    url('api/message', view = lambda request: HttpResponse(controller.controller(request.body)))
     # path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     ]
