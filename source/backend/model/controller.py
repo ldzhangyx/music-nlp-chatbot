@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\music-nlp-chatbot")
+sys.path.insert(0, r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot")
 
 from database import database_op as op
 from source.backend.model import intention_analysis
@@ -7,7 +7,7 @@ import json
 import yaml
 
 # global yaml_data
-# with open(r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\music-nlp-chatbot\settings.yaml",'r') as f:
+# with open(r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\settings.yaml",'r') as f:
 #     yaml_data = yaml.load(f)
 
 # database_url = yaml_data['database_url']

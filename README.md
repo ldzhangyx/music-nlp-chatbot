@@ -24,7 +24,7 @@ python -m pip install Django
 
 ```python
 import sys
-sys.path.insert(0,r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\music-nlp-chatbot")
+sys.path.insert(0,r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot")
 
 ```
 

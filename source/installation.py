@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\music-nlp-chatbot")
+sys.path.insert(0, r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot")
 
 from database import database_op
 from torchnlp.word_to_vector import GloVe
