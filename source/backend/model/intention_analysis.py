@@ -1,6 +1,7 @@
 from functools import reduce
 import torch
 from torchnlp.word_to_vector import GloVe
+import pprint
 
 def intention_analysis_bag_of_words(input_text):
     '''
@@ -12,8 +13,9 @@ def intention_analysis_bag_of_words(input_text):
     minimum_similarity = 0.02
 
     actions = [
-        'create add generate',
-        'revise',
+        'generate',
+        'revise alter',
+        'delete remove'
     ]
 
     items = [
@@ -21,7 +23,7 @@ def intention_analysis_bag_of_words(input_text):
         'arrangement',
         'chords',
         'drums beats',
-        'lyrics text'
+        'text'
     ]
 
     combine_list = [' '.join([i, j]) for i in actions for j in items]
@@ -29,7 +31,7 @@ def intention_analysis_bag_of_words(input_text):
     intention_list = combine_list + ['others']
 
 
-    vectors = GloVe('6B', dim=50)
+    vectors = GloVe('6B', dim=300)
 
     intention_list_vector = torch.stack([
         torch.mean(torch.stack([
@@ -46,6 +48,9 @@ def intention_analysis_bag_of_words(input_text):
     for intention_vector in intention_list_vector]
 
     max_index = similarity.index(max(similarity))
+
+    s = {intention_list[i]: similarity[i] for i in range(len(similarity))}
+    pprint.pprint(s)
 
     # 设置最小阈值
     if similarity[max_index] > minimum_similarity:

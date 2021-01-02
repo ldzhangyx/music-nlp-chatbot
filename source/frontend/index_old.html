@@ -99,9 +99,7 @@
                                         style="height:auto;white-space: normal;"
                                         class="pa-4 mb-2"
                                         v-on="on"
-                                        
-                                    >   
-                                    <v-icon v-if="msg.msgType==='audio'">audiotrack</v-icon>
+                                    >
                                         {{ msg.content }}
                                         <sub
                                         class="ml-2"
@@ -116,22 +114,14 @@
                                     </v-chip>
                                     </v-hover>
                                 </template>
-                                <v-list dense>
-                                  <v-list-item-group
-                                    color="primary"
-                                  >
-                                  <v-list-item
-                                  @click="PlayAudio(msg)"
-                                  >Listen</v-list-item>
-                                  <v-list-item
-                                  @click="DeleteMessage(msg, i)"
-                                  >Delete</v-list-item>
-                                </v-list-item-group>
+                                <v-list>
+                                    <v-list-item>
+                                    <v-list-item-title>delete</v-list-item-title>
+                                    </v-list-item>
                                 </v-list>
                                 </v-menu>
                             </div>
                             </template>
-                          <audio id="audioId" width="0" height="0" autoplay></audio>
                         </v-card-text>
                       <!-- </v-virtual-scroll> -->
                       <v-card-text class="flex-shrink-1">
@@ -144,11 +134,9 @@
                           clear-icon="mdi-close-circle"
                           clearable
                           :append-icon=" marker ? 'mdi-map-marker' : 'mdi-map-marker-off'"
-                          append-outer-icon = 'send'
-                          :prepend-icon = "audio_avail ? 'mdi-microphone' : 'mdi-microphone-off' "
+                          :append-outer-icon = "(messageForm.content.length == 0) ? 'mdi-microphone':'send'"
                           @click:append="getLocation()"
                           @keyup.enter="sendMessageFromForm(messageForm.content, 'enter')"
-                          @click:prepend="audioRecording()"
                           @click:append-outer="sendMessageFromForm(messageForm.content, 'click')"
                           hide-details
                         />
@@ -197,9 +185,6 @@
         },
         ],
         messages: [
-        ],
-        audio: [
-
         ],
         messageForm: {
         content: "",
@@ -255,6 +240,10 @@
         },
         sendMessageFromForm(message, method){ //从聊天框发送消息
           if (this.messageForm.content.length == 0){
+            if (method == 'enter'){}
+            if (method == 'click'){ //语音
+
+            }
           }
           else {
           this.sendMessage(message, true)
@@ -265,19 +254,14 @@
           //     this.askBot(messageForm.content, messages)
           // }
         },
-        sendMessage(message, me = true, msgType = 'text', audioFile = null){ // 发送消息
+        sendMessage(message, me = true){ // 发送消息
             var d = new Date()
             this.messages.push({
                 content: message,
                 me: me,
-                msgType: msgType, // text
-                created_at: d.getHours() + ':' + d.getMinutes(),
-                audioFile: audioFile
+                created_at: d.getHours() + ':' + d.getMinutes()
             })
-        },   
-        DeleteMessage(msg, i){
-          this.messages.splice(i)
-        },
+        },  
         welcome(){
           axios.get('api/welcome')
             .then(response => {
@@ -286,51 +270,11 @@
                 this.sendMessage(welcome_message, false)
               }
             })
+          
         },
-        PlayAudio(message){
-          if (message.msgType === 'audio'){
-            let audio = document.getElementById("audioId");
-            audio.src = window.URL.createObjectURL(message.audioFile);
-            audio.addEventListener("canplay", () => {
-                window.URL.revokeObjectURL(audio.src)
-            })
-          }
-        },
-        recordingInit(){
-          // this.recordBtn = document.querySelector(".record-btn");
-          // this.player = document.querySelector(".audio-player");
-          this.audio_avail = navigator.mediaDevices.getUserMedia({audio: true}).then(
-            stream => {
-              this.mediaRecorder = new MediaRecorder(stream);})
-          this.recording = false
-          this.chunks = []  
-        },
-        audioRecording(){   
-              
-          if (this.mediaRecorder.state === "recording") {
-            this.mediaRecorder.stop();
-            this.messageForm.content = ''
-            //存储音频数据
-            this.mediaRecorder.ondataavailable = e => {
-              this.chunks.push(e.data);
-            };
-            this.mediaRecorder.onstop = e => {
-              var blob = new Blob(this.chunks, { type: "audio/ogg; codecs=opus" });
-              var audioFile = new File([blob], 'recording-buffer-' + Date.now(), {lastModified: Date.now()})
-              this.sendMessage('[audio]', true, 'audio', audioFile)
-              this.chunks = [];
-            }
-            
-          }
-          else{
-            this.mediaRecorder.start();
-            this.messageForm.content = 'Recording...'
-          } 
-        },  
     },
     created () {
       this.marker = navigator.geolocation
-      this.recordingInit()
       this.sessionId = Date.now()
     },
     mounted () {
