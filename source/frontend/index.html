@@ -318,6 +318,9 @@
               var blob = new Blob(this.chunks, { type: "audio/ogg; codecs=opus" });
               var audioFile = new File([blob], 'recording-buffer-' + Date.now(), {lastModified: Date.now()})
               this.sendMessage('[audio]', true, 'audio', audioFile)
+              audioFile.text().then( text =>
+                this.askBot(text)
+              )
               this.chunks = [];
             }
             

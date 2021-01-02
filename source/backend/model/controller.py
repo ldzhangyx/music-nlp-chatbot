@@ -27,7 +27,11 @@ def controller(post_json):
     # op.creation_table_logging('log.sqlite3', session_id, )
 
     # 意图分析
-    intention = intention_analysis.intention_analysis_bag_of_words(message)
+    if(len(message) > 50): # audio blob文件
+        # audio detection?
+        intention = "sound detected."
+    else:
+        intention = intention_analysis.intention_analysis_bag_of_words(message)
 
     # 状态转移
 
