@@ -60,17 +60,24 @@
                     </v-list>
                   
                   <template >
-                    <v-stepper v-model="e6" vertical style="top: 265px;"> <!--todo: 这里是硬编码-->>
+                    <v-stepper v-model="e6" vertical style="top: 200px;"> <!--todo: 这里是硬编码-->
                       <v-stepper-step :complete="e6 > 1" step="1">
-                        Select an app
+                        Melody Creation
                         <small>Summarize if needed</small>
                       </v-stepper-step>
                   
-                      <v-stepper-step :complete="e6 > 2" step="2">Configure analytics for this app</v-stepper-step>
+                      <v-stepper-step :complete="e6 > 2" step="2">
+                        Chord and Arrangement Generation</v-stepper-step>
                   
-                      <v-stepper-step :complete="e6 > 3" step="3">Select an ad format and name ad unit</v-stepper-step>
+                      <v-stepper-step :complete="e6 > 3" step="3">
+                        Drums and Beats</v-stepper-step>
                   
-                      <v-stepper-step step="4">View setup instructions</v-stepper-step>
+                      <v-stepper-step step="4">
+                        Lyrics Writing</v-stepper-step>
+
+                      <v-stepper-step step="5" :complete=false>
+                        Completed</v-stepper-step>
+                      
                     </v-stepper>
                   </template>
                 </v-responsive>
