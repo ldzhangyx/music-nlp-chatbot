@@ -4,6 +4,8 @@ sys.path.insert(0, r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot")
 from database import database_op as op
 from source.backend.model import intention_analysis
 import json
+import keyword_extractor
+import policy
 import yaml
 
 # global yaml_data
@@ -14,6 +16,8 @@ import yaml
 
 global database_url
 database_url = r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\log.sqlite3"
+
+global current_state
 
 def controller(post_json):
     post_json = json.loads(post_json)
@@ -32,13 +36,17 @@ def controller(post_json):
         intention = "sound detected."
     else:
         intention = intention_analysis.intention_analysis_bag_of_words(message)
+        keywords = keyword_extractor.keyword_extractor(message)
 
     # 状态转移
+    # current state
+    transfer_state = intention_analysis.state_transfer(intention)
 
     # 模型计算
+    return_action, return_policy = policy.action(transfer_state, keywords)
 
     # 生成回复
-    return_message = intention
+    return_message = policy.return_message(return_action)
 
     # 日志增加表项
     op.message_logging(database_url, session_id, return_message, timestamp, is_user = False)

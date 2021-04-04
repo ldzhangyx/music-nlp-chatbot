@@ -63,17 +63,16 @@
                     <v-stepper v-model="e6" vertical style="top: 200px;"> <!--todo: 这里是硬编码-->
                       <v-stepper-step :complete="e6 > 1" step="1">
                         Melody Creation
-                        <small>Summarize if needed</small>
                       </v-stepper-step>
                   
                       <v-stepper-step :complete="e6 > 2" step="2">
-                        Chord and Arrangement Generation</v-stepper-step>
+                        Melody Revision</v-stepper-step>
                   
                       <v-stepper-step :complete="e6 > 3" step="3">
-                        Drums and Beats</v-stepper-step>
+                        Lyrics Writing</v-stepper-step>
                   
                       <v-stepper-step step="4">
-                        Lyrics Writing</v-stepper-step>
+                        Lyrics Revision</v-stepper-step>
 
                       <v-stepper-step step="5" :complete=false>
                         Completed</v-stepper-step>
@@ -107,6 +106,7 @@
                         <v-card-text class="flex-grow-1 overflow-y-auto">
                             <template v-for="(msg, i) in messages">
                             <div
+
                                 :class="{ 'd-flex flex-row-reverse': msg.me }"
                             >
                                 <v-menu offset-y>
@@ -115,6 +115,7 @@
                                     v-slot:default="{ hover }"
                                     >
                                     <v-chip
+                                        x-large
                                         :color="msg.me ? 'primary' : ''"
                                         dark
                                         style="height:auto;white-space: normal;"
@@ -201,8 +202,8 @@
                       <v-list>
                         <v-list-item>
                           <v-list-item-content>
-                            <v-list-item-title>The Walker</v-list-item-title>
-                            <v-list-item-subtitle>Fitz & The Trantrums</v-list-item-subtitle>
+                            <v-list-item-title>Untitled</v-list-item-title>
+                            <v-list-item-subtitle>Anonymous</v-list-item-subtitle>
                           </v-list-item-content>
               
                           <v-spacer></v-spacer>

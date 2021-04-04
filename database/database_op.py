@@ -33,7 +33,7 @@ def creation_table_init(db_name):
             chord TEXT,
             drum TEXT,
             acc TEXT,
-            lyrics TEXT
+            lyrics TEXT 
         );
         '''
     )

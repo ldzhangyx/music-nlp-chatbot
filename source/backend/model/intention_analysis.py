@@ -1,7 +1,22 @@
 from functools import reduce
 import torch
-from torchnlp.word_to_vector import GloVe
+import transformers
+from transformers import AutoTokenizer, BertModel
 import pprint
+
+
+def calculate_BERT_representation(input_text):
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    model = BertModel.from_pretrained("bert-base-uncased")
+    input_ids = torch.tensor(tokenizer.encode(input_text)).unsqueeze(0)
+    outputs = model(input_ids)
+    last_hidden_states = outputs[0]
+
+    mean_representation = torch.mean(last_hidden_states.squeeze(0)[1:-1], dim=0)
+
+    return mean_representation
+
+
 
 def intention_analysis_bag_of_words(input_text):
     '''
@@ -14,35 +29,26 @@ def intention_analysis_bag_of_words(input_text):
 
     actions = [
         'generate',
+        'add'
         'revise alter',
         'delete remove'
     ]
 
     items = [
+        'lyrics'
         'melody',
-        'arrangement',
-        'chords',
-        'drums beats',
-        'text'
     ]
 
     combine_list = [' '.join([i, j]) for i in actions for j in items]
 
     intention_list = combine_list + ['others']
 
-
-    vectors = GloVe('6B', dim=300)
-
     intention_list_vector = torch.stack([
-        torch.mean(torch.stack([
-            vectors[word] for word in intention.split()
-        ]), dim = 0)
+        calculate_BERT_representation(intention)
         for intention in intention_list[:-1]
     ])
 
-    message_vector = torch.mean(torch.stack([
-            vectors[word] for word in input_text.split()
-        ]), dim = 0)
+    message_vector = calculate_BERT_representation(input_text)
 
     similarity = [float(torch.cosine_similarity(message_vector.T, intention_vector, dim = 0))
     for intention_vector in intention_list_vector]
@@ -60,3 +66,19 @@ def intention_analysis_bag_of_words(input_text):
 # intention_analysis_bag_of_words('generate melody')
 
 # vectors = GloVe('6B', dim=50)
+
+def state_transfer(intention):
+    possible_states = [False, True, True, True, True, False]
+    keywords = intention.split()
+    if keywords[0] == 'generate':
+        possible_states[2] = possible_states[4] = False
+    if keywords[0] != 'generate':
+        possible_states[1] = possible_states[3] = False
+    if keywords[1] == 'melody':
+        possible_states[3] = possible_states[4] = False
+    if keywords[1] == 'lyrics':
+        possible_states[1] = possible_states[2] = False
+    for i in range(len(possible_states)):
+        if possible_states[i] is True:
+            return i
+    return -2
