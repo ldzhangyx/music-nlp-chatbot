@@ -26,13 +26,12 @@ def creation_table_init(db_name):
         CREATE TABLE CREATION(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id INTEGER NOT NULL,
-            emotion TEXT,
+            note_num INTEGER,
+            note_var FLOAT,
+            rhythm_var FLOAT,
             topic TEXT,
             content TEXT,
             melody TEXT,
-            chord TEXT,
-            drum TEXT,
-            acc TEXT,
             lyrics TEXT 
         );
         '''
@@ -69,7 +68,10 @@ def creation_table_logging(db_name, session_id, column_name, content):
     # 预防SQL注入
     c.execute("UPDATE CREATION SET ? = ? where session_id = ?", (column_name, content, session_id))
     conn.commit()
-    conn.close()   
+    conn.close()
+
+def check_creation_table(db_name, session_id):
+
 
 
 # ===

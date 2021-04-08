@@ -1,13 +1,13 @@
 from functools import reduce
 import torch
 import transformers
-from transformers import AutoTokenizer, BertModel
+from transformers import DistilBertTokenizer, DistilBertModel
 import pprint
 
 
 def calculate_BERT_representation(input_text):
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-    model = BertModel.from_pretrained("bert-base-uncased")
+    tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+    model = DistilBertModel.from_pretrained("distilbert-base-uncased")
     input_ids = torch.tensor(tokenizer.encode(input_text)).unsqueeze(0)
     outputs = model(input_ids)
     last_hidden_states = outputs[0]
@@ -16,7 +16,13 @@ def calculate_BERT_representation(input_text):
 
     return mean_representation
 
-
+intention_list = [
+        'generate melody',
+        'write lyrics',
+        'revise melody',
+        'revise lyrics',
+        'others'
+    ]
 
 def intention_analysis_bag_of_words(input_text):
     '''
@@ -27,21 +33,7 @@ def intention_analysis_bag_of_words(input_text):
 
     minimum_similarity = 0.02
 
-    actions = [
-        'generate',
-        'add'
-        'revise alter',
-        'delete remove'
-    ]
 
-    items = [
-        'lyrics'
-        'melody',
-    ]
-
-    combine_list = [' '.join([i, j]) for i in actions for j in items]
-
-    intention_list = combine_list + ['others']
 
     intention_list_vector = torch.stack([
         calculate_BERT_representation(intention)
@@ -63,22 +55,14 @@ def intention_analysis_bag_of_words(input_text):
         return intention_list[max_index]
     return intention_list[-1]
     
-# intention_analysis_bag_of_words('generate melody')
+intention_analysis_bag_of_words('generate melody')
 
 # vectors = GloVe('6B', dim=50)
 
-def state_transfer(intention):
-    possible_states = [False, True, True, True, True, False]
-    keywords = intention.split()
-    if keywords[0] == 'generate':
-        possible_states[2] = possible_states[4] = False
-    if keywords[0] != 'generate':
-        possible_states[1] = possible_states[3] = False
-    if keywords[1] == 'melody':
-        possible_states[3] = possible_states[4] = False
-    if keywords[1] == 'lyrics':
-        possible_states[1] = possible_states[2] = False
-    for i in range(len(possible_states)):
-        if possible_states[i] is True:
-            return i
-    return -2
+
+def state_transfer(intention, keywords, current_state):
+    if len(keywords) == 0:
+        for i in range(len(intention_list)):
+            if intention_list[i] == intention:
+                current_state = i + 1
+    return current_state

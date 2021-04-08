@@ -8,4 +8,4 @@ if __name__ == '__main__':
     database_op.log_table_init('log.sqlite3')
     database_op.creation_table_init('log.sqlite3')
 
-    vector = GloVe('6B',dim=50)
+    # vector = GloVe('6B',dim=50)

@@ -4,8 +4,8 @@ sys.path.insert(0, r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot")
 from database import database_op as op
 from source.backend.model import intention_analysis
 import json
-import keyword_extractor
-import policy
+from . import keyword_extractor
+from . import policy
 import yaml
 
 # global yaml_data
@@ -17,7 +17,7 @@ import yaml
 global database_url
 database_url = r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\log.sqlite3"
 
-global current_state
+current_state = 0
 
 def controller(post_json):
     post_json = json.loads(post_json)
@@ -30,22 +30,18 @@ def controller(post_json):
     op.message_logging(database_url, session_id, message, timestamp, is_user = True)
     # op.creation_table_logging('log.sqlite3', session_id, )
 
-    # 意图分析
-    if(len(message) > 50): # audio blob文件
-        # audio detection?
-        intention = "sound detected."
-    else:
-        intention = intention_analysis.intention_analysis_bag_of_words(message)
-        keywords = keyword_extractor.keyword_extractor(message)
+    # 意图分析 NLU
+    intention = intention_analysis.intention_analysis_bag_of_words(message)
+    keywords = keyword_extractor.keyword_extractor(message)
 
-    # 状态转移
-    # current state
-    transfer_state = intention_analysis.state_transfer(intention)
+    # 状态转移 DST
+    global current_state
+    current_state = intention_analysis.state_transfer(intention, keywords, current_state)
 
-    # 模型计算
-    return_action, return_policy = policy.action(transfer_state, keywords)
+    # 模型计算 POL
+    return_action = policy.action(current_state, keywords, session_id)
 
-    # 生成回复
+    # 生成回复 NLG
     return_message = policy.return_message(return_action)
 
     # 日志增加表项
