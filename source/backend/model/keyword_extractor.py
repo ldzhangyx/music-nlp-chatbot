@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 import torch
 import nltk
+import pickle
 
 id2label = {
     "0": "ADJ",
@@ -22,8 +23,29 @@ id2label = {
     "16": "X"
 },
 
+with open('tags.pkl','rb') as f:
+    genre_list = pickle.load(f)[:100]
 
-def keyword_extractor(input_sentence):
+keyword_blacklist = ['keyword', 'keywords','genre','genres', 'style']
+
+
+# for lyrics
+def keyword_extractor_lyrics(input_sentence):
+    words = nltk.word_tokenize(input_sentence)
+    genres = list()
+    for word in words:
+        if word in genre_list:
+            genres.append(word)
+    genres_text = ','.join(genres)
+
+    keywords = keyword_extractor(input_sentence, pos_list=['7'])
+    keywords = list(filter(lambda x: x not in keyword_blacklist, keywords))
+    keywords_text = ','.join(keywords)
+
+    return genres_text, keywords_text
+
+# for music
+def keyword_extractor(input_sentence, pos_list = ['0', '1', '2']):
     input_words = ['<SOS>'] + nltk.word_tokenize(input_sentence) + ['<EOS>']
     tokenizer = AutoTokenizer.from_pretrained("vblagoje/bert-english-uncased-finetuned-pos")
     model = AutoModelForTokenClassification.from_pretrained("vblagoje/bert-english-uncased-finetuned-pos")
@@ -36,7 +58,7 @@ def keyword_extractor(input_sentence):
     # what we need are ADJ and ADV
     keywords = list()
     for i, label in enumerate(output_label.tolist()):
-        if str(label) in ['0','1','2']:
+        if str(label) in pos_list:
             keywords.append(input_words[i])
 
     return keywords

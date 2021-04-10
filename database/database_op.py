@@ -29,10 +29,11 @@ def creation_table_init(db_name):
             note_num INTEGER,
             note_var FLOAT,
             rhythm_var FLOAT,
-            topic TEXT,
-            content TEXT,
-            melody TEXT,
-            lyrics TEXT 
+            genre TEXT,
+            keyword TEXT,
+            melody_generated BOOLEAN,
+            lyrics_generated BOOLEAN,
+            state INTEGER
         );
         '''
     )
@@ -40,42 +41,50 @@ def creation_table_init(db_name):
     conn.close()
 
 
-def message_logging(db_name, session_id, timestamp, message, is_user):
+def message_logging(db_name, session_id, timestamp, message, is_user, state):
     # 记录一条新消息
     conn = sqlite3.connect(db_name)
     c = conn.cursor()
     # 预防SQL注入
-    c.execute("INSERT INTO MESSAGES (session_id, timestamp, text, is_user) VALUES (?, ?, ?, ?)", (session_id, timestamp, message, is_user))
+    c.execute("INSERT INTO MESSAGES (session_id, timestamp, text, is_user, state) VALUES (?, ?, ?, ?, ?)",
+              (session_id, timestamp, message, is_user, state))
     conn.commit()
     conn.close()
 
-def new_creatiob_table_logging(db_name, session_id):
+def creation_logging_new(db_name, session_id):
     # 创建一条新的creation table
     conn = sqlite3.connect(db_name)
     c = conn.cursor()
     # 预防SQL注入
-    c.execute("INSERT INTO CREATION (session_id) VALUES (?)", (session_id))
+    c.execute("INSERT INTO CREATION (session_id, note_num, note_var, rhythm_var, genre, keyword, melody_generated, lyrics_generated, state) "
+              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+              (session_id, -1, -1, -1, "", "", False, False, 0))
     conn.commit()
     conn.close()   
 
-def creation_table_logging(db_name, session_id, column_name, content):
+
+def creation_logging_update(db_name, session_id, column_name, content):
     # 修改现有的creation table
     conn = sqlite3.connect(db_name)
     c = conn.cursor()
     c.execute("SELECT * FROM CREATION WHERE id = ?", (session_id))
-    if len(c.fetchall()) == 0:
-        new_creatiob_table_logging(db_name, session_id)
+    # if len(c.fetchall()) == 0:
+    #     new_creation_table_logging(db_name, session_id)
     # 预防SQL注入
     c.execute("UPDATE CREATION SET ? = ? where session_id = ?", (column_name, content, session_id))
     conn.commit()
     conn.close()
 
-def check_creation_table(db_name, session_id):
-
-
+def check_table(db_name, table_name, session_id, column_name):
+    conn = sqlite3.connect(db_name)
+    c = conn.cursor()
+    c.execute("SELECT ? FROM ? WHERE id = ?", (column_name, table_name, session_id))
+    lines = c.fetchone()
+    return lines[0]
 
 # ===
-# log_table_init('log.sqlite3')
+# log_table_init(r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\log.sqlite3")
+# creation_table_init(r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\log.sqlite3")
 
 # 临时改动用代码
 # conn = sqlite3.connect('log.sqlite3')

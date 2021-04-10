@@ -8,6 +8,9 @@ from . import keyword_extractor
 from . import policy
 import yaml
 
+import json
+from django.http import JsonResponse
+
 # global yaml_data
 # with open(r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\settings.yaml",'r') as f:
 #     yaml_data = yaml.load(f)
@@ -17,8 +20,6 @@ import yaml
 global database_url
 database_url = r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\log.sqlite3"
 
-current_state = 0
-
 def controller(post_json):
     post_json = json.loads(post_json)
     # TODO: 是否考虑常驻？这与上下文密切相关
@@ -26,16 +27,24 @@ def controller(post_json):
     timestamp = post_json['timestamp']
     message = post_json['content']
 
+
     # 日志增加表项
-    op.message_logging(database_url, session_id, message, timestamp, is_user = True)
-    # op.creation_table_logging('log.sqlite3', session_id, )
+    op.message_logging(database_url, session_id, timestamp, message, is_user = True)
+    op.creation_logging_new(database_url, session_id)
 
     # 意图分析 NLU
     intention = intention_analysis.intention_analysis_bag_of_words(message)
-    keywords = keyword_extractor.keyword_extractor(message)
+    keywords_music = keyword_extractor.keyword_extractor(message)
+    genres_lyrics, keywords_lyrics = keyword_extractor.keyword_extractor_lyrics(message)
+    keywords = {
+        'keywords_music': keywords_music,
+        'genres_lyrics': genres_lyrics,
+        'keywords_lyrics': keywords_lyrics
+    }
 
     # 状态转移 DST
-    global current_state
+    # current state
+    current_state = op.check_table(database_url, 'CREATION', session_id, 'state') # check table
     current_state = intention_analysis.state_transfer(intention, keywords, current_state)
 
     # 模型计算 POL
@@ -45,9 +54,14 @@ def controller(post_json):
     return_message = policy.return_message(return_action)
 
     # 日志增加表项
-    op.message_logging(database_url, session_id, return_message, timestamp, is_user = False)
+    op.message_logging(database_url, session_id, timestamp, return_message, is_user = False)
     # op.creation_table_logging('log.sqlite3', session_id, )
 
-    # 回复
-    return return_message
+    audio_path = r"/frontend/static/MIDI_ashover10.mid"
 
+    # 回复
+    return JsonResponse({
+        'message': return_message,
+        'status': current_state,
+        'audio_path': audio_path
+    })

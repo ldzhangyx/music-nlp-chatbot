@@ -13,7 +13,9 @@ actions = {
     7: 'revise lyrics'
 }
 
-def action(state, keywords, session_id):
+def action(current_state, keywords, session_id):
+
+
     # check the table
 
 
@@ -21,8 +23,9 @@ def action(state, keywords, session_id):
 
     # generate or require more messages (not available)
 
-    return action, policy
+    return return_action
 
 def return_message(return_action):
-    pass
+    return actions[1]
+    # pass
 

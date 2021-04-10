@@ -60,21 +60,21 @@
                     </v-list>
                   
                   <template >
-                    <v-stepper v-model="e6" vertical style="top: 200px;"> <!--todo: 这里是硬编码-->
-                      <v-stepper-step :complete="e6 > 1" step="1">
+                    <v-stepper v-model="status" vertical style="top: 200px;"> <!--todo: 这里是硬编码-->
+                      <v-stepper-step :complete="status == 1" step="1">
                         Melody Creation
                       </v-stepper-step>
                   
-                      <v-stepper-step :complete="e6 > 2" step="2">
+                      <v-stepper-step :complete="status == 2" step="2">
                         Melody Revision</v-stepper-step>
                   
-                      <v-stepper-step :complete="e6 > 3" step="3">
+                      <v-stepper-step :complete="status == 3" step="3">
                         Lyrics Writing</v-stepper-step>
                   
-                      <v-stepper-step step="4">
+                      <v-stepper-step :complete="status == 4" step="4">
                         Lyrics Revision</v-stepper-step>
 
-                      <v-stepper-step step="5" :complete=false>
+                      <v-stepper-step step="5" :complete="status == 5">
                         Completed</v-stepper-step>
                       
                     </v-stepper>
@@ -215,7 +215,10 @@
                           </v-list-item-icon>
               
                           <v-list-item-icon :class="{ 'mx-5': $vuetify.breakpoint.mdAndUp }">
-                            <v-btn icon>
+                            <v-btn icon
+                            id="music_button"
+                            @click:playMusic()
+                            >
                               <v-icon>mdi-pause</v-icon>
                             </v-btn>
                           </v-list-item-icon>
@@ -244,6 +247,7 @@
   <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="/frontend/script/midi.js"></script>
   <script>
 
     function sleep(ms) {
@@ -255,12 +259,14 @@
     var configurations = {
         'height':700,
         'message_height':50,
-    }  
-    new Vue({
+    }
+    var vm = new Vue({
     el: '#app',
     vuetify: new Vuetify(),
     data: () => ({
         activeChat: 1,
+        status: 0,
+        music_path: "",
         parents: [
         {
             id: 1,
@@ -311,11 +317,28 @@
           },
           })
             .then(response => {
-              this.response_messages = response.data
+              this.response_messages = response.data['message']
+              this.status = response.data['status']
+              // this.$set(this.status, status)
+              this.music_path = response.data['audio_path']
+              // if (response.data['audio_path'] != ""){
+              //     this.music_avail = true;
+              // } else {
+              //     this.music_avail = false;
+              // }
               for (response_message of this.response_messages.split('*')){
                 this.sendMessage(response_message, false)
               }
             })
+        },
+        playMusic() {
+            this.music_playing = !this.music_playing;
+            this.music = new MidiPlayer(this.music_path, 'music_button');
+            if (this.music_playing) {
+                this.music.play()
+            } else {
+                this.music.stop()
+            }
         },
         getCookie (name) {
           var value = '; ' + document.cookie
@@ -410,13 +433,14 @@
     },
     created () {
       this.marker = navigator.geolocation
+      this.audio_avail = false;
+      this.music_playing = false;
       this.recordingInit()
       this.sessionId = Date.now()
     },
     mounted () {
       // 初始化
       this.welcome()
-
     },
     })
   </script>

@@ -140,6 +140,12 @@ def main():
                 scheduler.step()
                 optimizer.zero_grad()
 
+            if step % 5000 == 0:
+                save_model_dir = U.make_dir(os.path.join(output_dir, "model_epoch_" + str(epoch + 1) + "_step_" + str(step)))
+                model.save_pretrained(save_model_dir)
+                enc.save_pretrained(save_model_dir)
+
+
         if (epoch + 1) % args.save_every_n_epoch == 0:
             save_model_dir = U.make_dir(os.path.join(output_dir, "model_epoch_" + str(epoch + 1)))
             model.save_pretrained(save_model_dir)
