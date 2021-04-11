@@ -31,10 +31,6 @@ def intention_analysis_bag_of_words(input_text):
     可以选择fasttext还是glove。默认选择fasttext。
     '''
 
-    minimum_similarity = 0.02
-
-
-
     intention_list_vector = torch.stack([
         calculate_BERT_representation(intention)
         for intention in intention_list
@@ -51,6 +47,8 @@ def intention_analysis_bag_of_words(input_text):
     pprint.pprint(s)
 
     # 设置最小阈值
+    minimum_similarity = 0.5
+
     if similarity[max_index] > minimum_similarity:
         return intention_list[max_index]
     return intention_list[-1]

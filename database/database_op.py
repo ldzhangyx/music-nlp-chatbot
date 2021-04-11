@@ -75,12 +75,16 @@ def creation_logging_update(db_name, session_id, column_name, content):
     conn.commit()
     conn.close()
 
-def check_table(db_name, table_name, session_id, column_name):
+
+def check_table(db_name, table_name, session_id, column_name = None):
     conn = sqlite3.connect(db_name)
     c = conn.cursor()
-    c.execute("SELECT ? FROM ? WHERE id = ?", (column_name, table_name, session_id))
+    if column_name != None:
+        c.execute("SELECT ? FROM ? WHERE id = ?", (column_name, table_name, session_id))
+    else:
+        c.execute("SELECT * FROM ? WHERE id = ?", (table_name, session_id))
     lines = c.fetchone()
-    return lines[0]
+    return lines
 
 # ===
 # log_table_init(r"C:\Users\ldzha\OneDrive\AIM\music-nlp-chatbot\log.sqlite3")

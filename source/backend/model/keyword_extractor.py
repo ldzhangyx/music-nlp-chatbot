@@ -36,11 +36,17 @@ def keyword_extractor_lyrics(input_sentence):
     for word in words:
         if word in genre_list:
             genres.append(word)
-    genres_text = ','.join(genres)
+    if len(genres) > 0:
+        genres_text = ','.join(genres)
+    else:
+        genres_text = ""
 
     keywords = keyword_extractor(input_sentence, pos_list=['7'])
     keywords = list(filter(lambda x: x not in keyword_blacklist, keywords))
-    keywords_text = ','.join(keywords)
+    if len(keywords) > 0:
+        keywords_text = ','.join(keywords)
+    else:
+        keywords_text = ""
 
     return genres_text, keywords_text
 

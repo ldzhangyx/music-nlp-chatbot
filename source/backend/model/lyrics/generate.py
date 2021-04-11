@@ -146,6 +146,8 @@ def generate_lyrics(model, enc, args, context, end_token, device):
 
     return output
 
+def generate_lyrics_wrapper(genres, keywords):
+    return 'Here is a lyrics'
 
 def main():
     args = init_args()
