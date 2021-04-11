@@ -1,0 +1,1 @@
+{"bos_token": "<|endoftext|>", "eos_token": "<|endoftext|>", "unk_token": "<|endoftext|>", "additional_special_tokens": ["[s:tags]", "[s:keywords]", "[s:lyrics]", "[e:tags]", "[e:keywords]", "[e:lyrics]"]}

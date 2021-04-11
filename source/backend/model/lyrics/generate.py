@@ -4,7 +4,8 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-from transformers import GPT2Tokenizer, GPT2LMHeadModel, AdamW, WarmupLinearSchedule
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, AdamW
+from transformers import get_linear_schedule_with_warmup as WarmupLinearSchedule
 from tqdm import tqdm, trange
 
 import utils.utilities as U
@@ -17,8 +18,8 @@ logger = logging.getLogger(__name__)
 def init_args():
     parser = argparse.ArgumentParser()
     # Model hyperparams
-    parser.add_argument("--load_model_dir", type=str, default="", help="")
-    parser.add_argument("--gen_batch", type=int, default=3, help="")
+    parser.add_argument("--load_model_dir", type=str, default="tuned_models/output_tiny/", help="")
+    parser.add_argument("--gen_batch", type=int, default=4, help="")
 
     args = parser.parse_args()
     return args
@@ -32,35 +33,20 @@ def get_token_types(input, enc):
     :return: A list of toke_type_ids corresponding to the input_ids
     """
     meta_dict = {
-        "genre": {
-            "st_token": "[s:genre]",
-            "end_token": "[e:genre]",
+        "tags": {
+            "st_token": "[s:tags]",
+            "end_token": "[e:tags]",
             "tok_type_id": 1
         },
-        "artist": {
-            "st_token": "[s:artist]",
-            "end_token": "[e:artist]",
+        "keywords": {
+            "st_token": "[s:keywords]",
+            "end_token": "[e:keywords]",
             "tok_type_id": 2
-        },
-        "year": {
-            "st_token": "[s:year]",
-            "end_token": "[e:year]",
-            "tok_type_id": 3
-        },
-        "album": {
-            "st_token": "[s:album]",
-            "end_token": "[e:album]",
-            "tok_type_id": 4
-        },
-        "song_name": {
-            "st_token": "[s:song_name]",
-            "end_token": "[e:song_name]",
-            "tok_type_id": 5
         },
         "lyrics": {
             "st_token": "[s:lyrics]",
             "end_token": "[e:lyrics]",
-            "tok_type_id": 6
+            "tok_type_id": 3
         }
     }
 
@@ -108,17 +94,19 @@ def generate_lyrics(model, enc, args, context, end_token, device):
 
     # Get the end of generation signal, token_id of, e.g., [e:lyrics]
     end_token_id = enc.added_tokens_encoder[end_token]
-    max_len = enc.max_len
+    max_len = enc.model_max_length
 
     with torch.no_grad():
         past = None
         keep_gen_4_these_batches = np.arange(0, args.gen_batch).tolist()
         for _ in trange(len(context), max_len):
-            logits, past = model(input_ids=input_ids,
-                                 position_ids=position_ids,
-                                 token_type_ids=token_type_ids,
-                                 past=past)
-
+            output_ = model(input_ids=input_ids,
+                                   past_key_values=past,
+                                   position_ids=position_ids,
+                                   token_type_ids=token_type_ids
+                                   )
+            logits = output_[0]
+            past = output_[1]
             next_token_logits = logits[:, -1, :]
             filtered_logits = U.top_k_top_p_filtering(next_token_logits, top_k=0, top_p=0.95)
             log_probs = F.softmax(filtered_logits, dim=-1)
@@ -147,9 +135,6 @@ def generate_lyrics(model, enc, args, context, end_token, device):
     return output
 
 def generate_lyrics_wrapper(genres, keywords):
-    return 'Here is a lyrics'
-
-def main():
     args = init_args()
     device, n_gpu = U.get_device(logger)
 
@@ -165,30 +150,21 @@ def main():
     # @                    GENERATE FROM FINE-TUNED GPT2
     # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-    tags = "Pop"
-    artist = "Justin Bieber"
-    year = "2015"
-    album = "Purpose"
-    song_name = "Love Yourself"
+    tags = genres
+    keywords = keywords
 
     context = "[s:tags]" + tags + "[e:tags]" + \
               "[s:keywords]" + keywords + "[e:keywords]" + \
               "[s:lyrics]"
-
-    context = "[s:tags]" + tags + "[e:tags]" + \
-              "[s:keywords]" + keywords + "[e:keywords]" + \
-              "[s:lyrics]"
-
     end_token = "[e:lyrics]"
-
     context = enc.encode(context)
-
     sequence_batch = generate_lyrics(model, enc, args, context, end_token, device)
 
     for seq in sequence_batch:
         print(enc.decode(seq))
         print("\n---------------\n")
+    return seq[0]
 
 
 if __name__ == '__main__':
-    main()
+    generate_lyrics_wrapper('pop,british,female','vocalists,dance,cheryl cole')

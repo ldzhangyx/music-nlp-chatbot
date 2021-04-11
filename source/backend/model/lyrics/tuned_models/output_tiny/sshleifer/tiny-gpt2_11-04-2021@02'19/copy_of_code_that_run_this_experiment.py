@@ -25,7 +25,7 @@ def init_args():
 
     # Training hyperparams
     parser.add_argument("--train_model", action='store_true', help="Fine-tune gpt2 model.")
-    parser.add_argument("--train_data_path", type=str, default="dataset/output.csv", help="Train dataset path.")
+    parser.add_argument("--train_data_path", type=str, default="dataset/output_tiny.csv", help="Train dataset path.")
     parser.add_argument('--num_train_epochs', type=int, default=5, help="")
     parser.add_argument('--save_every_n_epoch', type=int, default=1, help="")
     parser.add_argument('--train_batch_size', type=int, default=1, help="")
@@ -44,8 +44,8 @@ def init_args():
 
 def prepare_train_data(args, enc, device):
     raw_dataset = U.load_dataset(args.train_data_path)
-    formated_dataset = U.format_n_tokenize_data(raw_dataset, enc)
-    train_tensor_data = U.construct_input(formated_dataset, device, max_input_len=enc.model_max_length)
+    formatted_dataset = U.format_n_tokenize_data(raw_dataset, enc)
+    train_tensor_data = U.construct_input(formatted_dataset, device, max_input_len=enc.model_max_length)
 
     # Load onto the Pytorch DataLoader
     # Note: the '*' extracts all elements from the list
@@ -116,6 +116,7 @@ def main():
 
         for step, batch in enumerate(tqdm(train_data_loader, desc="Training")):
             tok_ids, tok_type_ids, pos_ids, att_mask, lm_labels = batch
+            lm_labels = lm_labels.long()
             outputs = model(
                 input_ids=tok_ids, past_key_values=past, attention_mask=att_mask, token_type_ids=tok_type_ids,
                 position_ids=pos_ids, labels=lm_labels
@@ -138,6 +139,12 @@ def main():
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad()
+
+            if step % 5000 == 0:
+                save_model_dir = U.make_dir(os.path.join(output_dir, "model_epoch_" + str(epoch + 1) + "_step_" + str(step)))
+                model.save_pretrained(save_model_dir)
+                enc.save_pretrained(save_model_dir)
+
 
         if (epoch + 1) % args.save_every_n_epoch == 0:
             save_model_dir = U.make_dir(os.path.join(output_dir, "model_epoch_" + str(epoch + 1)))
